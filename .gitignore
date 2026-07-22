@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# Training outputs
+outputs/
+logs/
+wandb/
+checkpoints/
+
+# Model files
+*.pt
+*.pth
+*.ckpt
+
+# Data files
+ickey/data/*.json
+ickey/data/*.txt
+ickey/ecommerce.db
+
+# Logs
+*.log
+ickey/*.log
+
+# OS
+.DS_Store
+Thumbs.db
