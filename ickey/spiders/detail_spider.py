@@ -16,7 +16,8 @@ import requests
 from parsers.detail_parser import parse_detail
 from storage.json_storage import (
     load_json,
-    append_to_json_file,
+    load_jsonl,
+    JSONLWriter,
     load_checkpoint,
     mark_completed,
 )
@@ -50,7 +51,7 @@ class DetailSpider:
         Returns:
             所有商品详情列表
         """
-        products = load_json(products_path)
+        products = load_jsonl(products_path) if products_path.endswith('.jsonl') else load_json(products_path)
         if not products:
             logger.error("商品列表为空，请先运行 list_spider")
             return []
@@ -59,41 +60,44 @@ class DetailSpider:
         if completed_skus:
             logger.info(f"断点恢复: {len(completed_skus)} 个商品已完成")
 
+        writer = JSONLWriter(output_path, flush_size=50, flush_interval=10)
         all_details: List[Dict[str, Any]] = []
         total = len(products)
 
-        for i, product in enumerate(products):
-            sku = product.get("sku", "")
-            detail_url = product.get("detail_url", "")
+        try:
+            for i, product in enumerate(products):
+                sku = product.get("sku", "")
+                detail_url = product.get("detail_url", "")
 
-            if not detail_url:
-                logger.warning(f"[{i+1}/{total}] 跳过: SKU={sku} (无详情URL)")
-                continue
+                if not detail_url:
+                    logger.warning(f"[{i+1}/{total}] 跳过: SKU={sku} (无详情URL)")
+                    continue
 
-            if sku and sku in completed_skus:
-                continue
+                if sku and sku in completed_skus:
+                    continue
 
-            logger.info(f"[{i+1}/{total}] 采集详情: SKU={sku}")
+                logger.info(f"[{i+1}/{total}] 采集详情: SKU={sku}")
 
-            try:
-                detail = self._crawl_one_detail(detail_url)
+                try:
+                    detail = self._crawl_one_detail(detail_url)
 
-                # 确保 SKU 回填
-                if not detail.get("sku") and sku:
-                    detail["sku"] = sku
+                    if not detail.get("sku") and sku:
+                        detail["sku"] = sku
 
-                append_to_json_file(detail, output_path)
-                all_details.append(detail)
+                    writer.append(detail)
+                    all_details.append(detail)
 
-                if sku:
-                    mark_completed(checkpoint_path, sku)
-                    completed_skus.add(sku)
+                    if sku:
+                        mark_completed(checkpoint_path, sku)
+                        completed_skus.add(sku)
 
-            except Exception as e:
-                logger.error(f"  ✗ 失败 [{sku}]: {e}")
-                continue
+                except Exception as e:
+                    logger.error(f"  ✗ 失败 [{sku}]: {e}")
+                    continue
 
-            time.sleep(REQUEST_DELAY)
+                time.sleep(REQUEST_DELAY)
+        finally:
+            writer.close()
 
         logger.info(f"详情采集完成: 共 {len(all_details)} 条")
         return all_details

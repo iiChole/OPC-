@@ -29,8 +29,8 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 # 数据文件路径
 CATEGORIES_PATH = os.path.join(DATA_DIR, "categories.json")
-PRODUCTS_PATH = os.path.join(DATA_DIR, "products.json")
-DETAILS_PATH = os.path.join(DATA_DIR, "product_details.json")
+PRODUCTS_PATH = os.path.join(DATA_DIR, "products.jsonl")
+DETAILS_PATH = os.path.join(DATA_DIR, "product_details.jsonl")
 FINAL_PATH = os.path.join(DATA_DIR, "products_final.json")
 
 # 断点文件路径

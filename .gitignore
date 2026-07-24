@@ -39,3 +39,4 @@ szlcs/*.log
 # OS
 .DS_Store
 Thumbs.db
+ickey/data/*.jsonl

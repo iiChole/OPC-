@@ -8,7 +8,7 @@
 import sys
 from typing import List, Dict, Any, Optional
 
-from storage.json_storage import load_json, save_json
+from storage.json_storage import load_json, save_json, load_jsonl
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -30,12 +30,12 @@ def merge(
     Returns:
         合并后的商品列表
     """
-    products = load_json(products_path)
+    products = load_jsonl(products_path) if products_path.endswith('.jsonl') else load_json(products_path)
     if not products:
         logger.error(f"商品列表为空: {products_path}")
         return []
 
-    details = load_json(details_path)
+    details = load_jsonl(details_path) if details_path.endswith('.jsonl') else load_json(details_path)
     if not details:
         logger.error(f"详情数据为空: {details_path}")
         return []
