@@ -27,10 +27,14 @@ checkpoints/
 ickey/data/*.json
 ickey/data/*.txt
 ickey/ecommerce.db
+szlcs/data/*.json
+szlcs/data/*.jsonl
+szlcs/data/*.txt
 
 # Logs
 *.log
 ickey/*.log
+szlcs/*.log
 
 # OS
 .DS_Store
