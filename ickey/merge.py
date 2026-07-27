@@ -57,11 +57,15 @@ def merge(
 
     for product in products:
         sku = product.get("sku", "")
-        attrs = sku_to_attrs.get(sku, {})
+        detail_attrs = sku_to_attrs.get(sku, {})
+        list_attrs = product.get("attributes", {})
         detail_title = sku_to_detail_title.get(sku, "")
 
-        if attrs:
+        if detail_attrs and len(detail_attrs) > 0:
+            attrs = detail_attrs
             matched += 1
+        else:
+            attrs = list_attrs
 
         merged.append({
             **product,
