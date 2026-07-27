@@ -47,14 +47,33 @@ cd szlcs
 - **断点续爬:** 按 `catalog_id` / SKU 记录 checkpoint，中断后自动恢复
 - **阿里云 WAF 回退:** `item.szlcsc.com` 受 WAF 保护时，自动使用列表页已有属性数据
 
-**后台运行:**
+### ti — TI.com 电子元器件爬虫
+
+爬取 [ti.com](https://www.ti.com) 电子元器件数据。
+
+**流程:** families → list → detail → merge
 
 ```bash
-# nohup（关闭终端不影响）
-nohup .venv/bin/python3 main.py --step all > crawl.log 2>&1 &
-
-# tmux（可随时查看进度）
-tmux new -s szlcs
-.venv/bin/python3 main.py --step all
-# Ctrl+B D 断开 | tmux attach -t szlcs 恢复
+cd ti
+python main.py --step families   # 发现产品家族
+python main.py --step list       # 采集产品列表
+python main.py --step detail     # 采集产品详情
+python main.py --step merge      # 合并数据
+python main.py --step all        # 全流程
 ```
+
+**数据格式:**
+
+| 文件 | 格式 | 说明 |
+|------|------|------|
+| `data/families.json` | JSON | 产品家族（17 大类 + 子分类） |
+| `data/products.jsonl` | JSON Lines | 产品列表（SKU、价格、库存） |
+| `data/product_details.jsonl` | JSON Lines | 产品详情（attributes、datasheet） |
+| `data/products_final.json` | JSON | 合并后的完整数据 |
+
+**特点:**
+
+- **JSON-LD 提取:** 从 category 页面的 JSON-LD ItemList 自动发现子分类，无需硬编码分类树
+- **断点续爬:** 列表和详情步骤按 family_id / SKU 记录 checkpoint，中断后自动恢复
+- **反爬延迟:** 请求间隔 + 重试退避，避免触发限流
+- **详情优先合并:** merge 阶段详情数据覆盖列表数据，保留列表独有的分类字段
