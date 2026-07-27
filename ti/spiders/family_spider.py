@@ -48,6 +48,7 @@ CATEGORIES = [
     "data-converters",
     "die-wafer-services",
     "dlp-products",
+    "general-purpose-portfolio",
     "interface",
     "isolation",
     "logic-voltage-translation",
@@ -86,27 +87,44 @@ class FamilySpider:
             subcategories = self._discover_subcategories(cat)
             logger.info(f"  → {len(subcategories)} 个子分类")
 
-            for sub in subcategories:
-                family_id = self._extract_destination_id(sub["products_url"])
-                if family_id is None:
-                    logger.warning(
-                        f"    ✗ 未找到 destination-id: {sub['name']} ({sub['slug']})"
-                    )
-                    continue
+            if subcategories:
+                # 有子分类：逐子分类提取 destination-id
+                for sub in subcategories:
+                    family_id = self._extract_destination_id(sub["products_url"])
+                    if family_id is None:
+                        logger.warning(
+                            f"    ✗ 未找到 destination-id: {sub['name']} ({sub['slug']})"
+                        )
+                        continue
 
-                if family_id in seen_ids:
-                    continue
-                seen_ids.add(family_id)
+                    if family_id in seen_ids:
+                        continue
+                    seen_ids.add(family_id)
 
-                family = {
-                    "family_id": family_id,
-                    "family_name": sub["name"],
-                    "category": cat,
-                    "subcategory": sub["slug"],
-                    "products_url": sub["products_url"],
-                }
-                families.append(family)
-                logger.info(f"    ✓ {family_id} = {sub['name']}")
+                    family = {
+                        "family_id": family_id,
+                        "family_name": sub["name"],
+                        "category": cat,
+                        "subcategory": sub["slug"],
+                        "products_url": sub["products_url"],
+                    }
+                    families.append(family)
+                    logger.info(f"    ✓ {family_id} = {sub['name']}")
+            else:
+                # 无子分类：尝试一级分类本身的 products.html
+                parent_url = f"/product-category/{cat}/products.html"
+                family_id = self._extract_destination_id(parent_url)
+                if family_id and family_id not in seen_ids:
+                    seen_ids.add(family_id)
+                    family = {
+                        "family_id": family_id,
+                        "family_name": cat.replace("-", " ").title(),
+                        "category": cat,
+                        "subcategory": "",
+                        "products_url": parent_url,
+                    }
+                    families.append(family)
+                    logger.info(f"    ✓ {family_id} = {cat} (一级分类)")
 
             time.sleep(REQUEST_DELAY)
 
