@@ -34,6 +34,8 @@ szlcs/data/*.txt
 ti/data/*.json
 ti/data/*.jsonl
 ti/data/*.txt
+component_agent/data/
+component_agent/run_state/
 
 # Logs
 *.log
